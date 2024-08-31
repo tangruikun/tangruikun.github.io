@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>hello world</title>
-    <url>/2024/02/25/hello-world-1/</url>
+    <title>00 Kubernetes架构图</title>
+    <url>/2024/08/31/00-Kubernetes%E6%9E%B6%E6%9E%84%E5%9B%BE/</url>
     <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2024/02/25/hello-world/</url>
-    <content><![CDATA[<h1 id="你好"><a href="#你好" class="headerlink" title="你好"></a>你好</h1><p>hello world！</p>
-]]></content>
   </entry>
 </search>
