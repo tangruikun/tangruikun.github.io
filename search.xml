@@ -1,3 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
+  <entry>
+    <title>00 Kubernetes架构</title>
+    <url>/2024/08/31/00-Kubernetes%E6%9E%B6%E6%9E%84/</url>
+    <content><![CDATA[<p>Kubernetes的架构，由Master和Node两种节点组成，这两种角色分别对应控制节点和计算节点。</p>
+<p><img src="/.%5Ck8s%E6%9E%B6%E6%9E%84%E5%9B%BE.png"></p>
+]]></content>
+      <tags>
+        <tag>k8s</tag>
+      </tags>
+  </entry>
 </search>
