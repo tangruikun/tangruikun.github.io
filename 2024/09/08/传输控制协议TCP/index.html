@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即应用程序在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="传输控制协议TCP">
+<meta property="og:url" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/index.html">
+<meta property="og:site_name" content="tangruikun">
+<meta property="og:description" content="最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即应用程序在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE1.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE2.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%B5%81%E6%B0%B4%E7%BA%BF%E4%BC%A0%E8%BE%93.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E8%BF%9E%E7%BB%ADARQ%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.png">
+<meta property="article:published_time" content="2024-09-08T02:40:26.000Z">
+<meta property="article:modified_time" content="2024-09-08T13:45:45.306Z">
+<meta property="article:author" content="tangruikun">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE1.png">
+
+<link rel="canonical" href="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>传输控制协议TCP | tangruikun</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">tangruikun</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="tangruikun">
+      <meta itemprop="description" content="学习记录，生活感悟">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tangruikun">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          传输控制协议TCP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-09-08 10:40:26 / 修改时间：21:45:45" itemprop="dateCreated datePublished" datetime="2024-09-08T10:40:26+08:00">2024-09-08</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。</p>
+<p>传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录：</p>
+<p>1、TCP的特点</p>
+<p>2、在不可靠的网络上实现可靠传输的工作原理和实现</p>
+<p>3、TCP的滑动窗口、流量控制、拥塞控制</p>
+<p>4、TCP的连接管理</p>
+<h1 id="TCP的特点"><a href="#TCP的特点" class="headerlink" title="TCP的特点"></a>TCP的特点</h1><p>1、<strong>TCP是面向连接的运输层协议</strong>。即应用程序在使用TCP协议前，需要先建立连接，在数据传输完毕之后，需要释放连接。就像打电话，需要先拨号建立连接，打完之后，需要挂断电话释放连接；</p>
+<p>2、每一条连接只能有两个端点，即只能是点对点（一对一）；</p>
+<p>3、TCP提供<strong>可靠交付</strong>的服务。通过TCP连接传送的数据，无差错、不丢失、不重复、按序到达；</p>
+<p>4、TCP提供<strong>全双工通信</strong>。允许通信的双方的应用进程在任何时候都能发送数据。双方都设置有发送缓存和接收缓存。发送时，应用程序把数据传到发送缓存后，就可以做其他事了，TCP在合适的时候会把数据发送出去。在接收时，TCP会把数据先放到接收缓存，应用程序在合适的时候进行读取；</p>
+<p>5、面向字节流。TCP中的“流”（stream）指的是流入到应用程序或从应用程序流出的字节序列。面向字节流的含义是虽然应用程序和TCP的交互是一次一个数据块（大小不等），但是TCP把应用程序交下来的数据看成仅仅是一连串的无结构的字节流。TCP并不知道所传送的字节流含义。TCP不保证应用程序所收到的数据块和发送应用程序所发出的数据块具有对应大小的关系（例如发送方用10个数据块发送，但是接收方可能只用了4个数据块就把收到的字节流交付给上层应用），但是保证接收方应用程序收到的字节流和发送方应用程序发出的字节流是一致的。</p>
+<h1 id="可靠传输原理及实现"><a href="#可靠传输原理及实现" class="headerlink" title="可靠传输原理及实现"></a>可靠传输原理及实现</h1><p>TCP的报文段是交给IP层传送的，IP层是尽最大努力交付，并不是可靠的，因此TCP必须采取适当的措施才能使的两个运输层的通信变得可靠。</p>
+<p>理想的传输条件有以下两个特点：</p>
+<p>（1）传输信道不产生差错</p>
+<p>（2）不管发送方以多块的速度发送数据，接收方都总是来得及处理收到的数据</p>
+<p>但是现实中这种理想的传输条件是不存在的。因此我们需要做适当的措施保证通信的可靠。</p>
+<h2 id="可靠传输原理"><a href="#可靠传输原理" class="headerlink" title="可靠传输原理"></a>可靠传输原理</h2><h3 id="停止等待协议"><a href="#停止等待协议" class="headerlink" title="停止等待协议"></a>停止等待协议</h3><p>“停止等待”就是每发送完一个分组就停止发送，等待对方的确认。在收到确认后在发送下一分组。</p>
+<h4 id="无差错的情况"><a href="#无差错的情况" class="headerlink" title="无差错的情况"></a>无差错的情况</h4><p>下面左图中是最简单的情况，A发送分组M1，等待确认，B收到M1后向A确认，然后A收到确认后再发送M2，B收到后向A发送确认。M3也是类似的过程。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE1.png" class="" title="停止等待协议1">
+
+<h4 id="出现差错"><a href="#出现差错" class="headerlink" title="出现差错"></a>出现差错</h4><p>上图的右图，B接收M1后检测到有差错就丢弃了M1，其他什么都不做（不通知M1）。也有可能M1在传输过程中丢失了，B自然也什么都不做。这两种情况，B都不会发送任何消息。</p>
+<p>可靠传输是这样设计的：A只要超过一段时间仍然没有收到确认，就认为刚才发送的分组 丢失了，因而重传前面发送过的分组。这就是<strong>超时重传</strong>。要实现超时重传，就需要在发送完分组后设置一个<strong>超时计时器</strong>，如果超时没有收到确认就重发，如果在超时之前收到确认就撤销超时计时器。可以看到上图中的右图，A在发送M1后，超过一定时间没有收到B的确认，于是重新发送M1。</p>
+<p>这里需要注意三点：</p>
+<p>（1）A发送完一个分组后，必须暂时保留已发送的分组的副本（超时重传时使用）。收到确认后才能清除；</p>
+<p>（2）分组和确认分组都必须进行编号。这样才能确认哪一个分组收到了确认，哪一个没有收到；</p>
+<p>（3）超时计时器设置的重传时间应该比分组传输的平均往返时间更长一些。</p>
+<h4 id="确认丢失和确认迟到"><a href="#确认丢失和确认迟到" class="headerlink" title="确认丢失和确认迟到"></a>确认丢失和确认迟到</h4><p>下图a中（确认丢失），B收到了M1，向A发送了确认，但是这个确认在传输过程中丢失了，A没有收到确认于是超时重传了M1，注意，B此时已经有了M1，因此B会丢弃重复的M1并向A发送确认。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE2.png" class="" title="停止等待协议2">
+
+<p>上图b中（确认迟到），B收到M1后向A发送确认，但是因为网络原因，确认分组传输时间超过了超时重传的时间，于是A重新发送M1，</p>
+<p>同样B收到重复的M1会丢弃并发送确认。A会收到重复的确认，此时A对重复确认的处理很简单：收到就丢弃。</p>
+<p>使用上述的确认和重传机制，我们就可以在不可靠的传输网络上实现可靠的通信。这种可靠的传输协议通常称为自动重传请求ARQ（Automatic Repeat reQuest），意思是重传的请求是自动的，接收方不需要请求发送方重传某个出错的分组。</p>
+<h3 id="连续ARQ协议"><a href="#连续ARQ协议" class="headerlink" title="连续ARQ协议"></a>连续ARQ协议</h3><p>停止等待协议优点是简单，但是缺点是信道利用率太低。所以为了提高传输效率，发送方可以不使用低效率的停止等待协议，而是采用流水线传输（如下图）。流水线传输一次可以连续发送多个分组，而不必每发完一个停顿下来等待对方确认。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%B5%81%E6%B0%B4%E7%BA%BF%E4%BC%A0%E8%BE%93.png" class="" title="流水线传输">
+
+<p>使用流水线传输时，就要使用到连续ARQ协议和滑动窗口（后面讲）。</p>
+<p>下图a中，处于窗口中的5个分组都可以发送，而不需要等待对方确认。这样信道利用率就高了。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E8%BF%9E%E7%BB%ADARQ%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.png" class="" title="连续ARQ工作原理">
+
+<p>连续ARQ协议规定，发送方每收到一个确认，就把发送窗口向前滑动一个分组的位置。上图b中，表示发送方收到了对第一个分组的确认，于是把发送窗口向前移动一个分组的位置。</p>
+<p>接收方一般采用累计确认的方式。即接收方不必对每个分组逐个发送确认，而是在收到几个分组后，对<strong>按序到达的最后一个分组发送确认</strong>，表示到这个分组为止的所有分组都已正确收到了。</p>
+<p>累计确认有优点也有缺点。优点：容易实现，即使确认丢失也不必重传（前面说过接收方会对按序到达的最后一个分组发送确认，如果第5个分组确认丢失了，但是后面发送方收到了第8个分组的确认，说明前8个分组都收到了，不用再重传第5个分组了）。缺点是不能向发送方反映出接收放已经正确收到的所有分组的信息。</p>
+<p>例如，发送方发送了前5个分组，而中间的第3个分组丢失了。也就是接收方收到了第1，第2，第4，第5个分组，这是接收方只能对第1和第2个分组发出确认。发送方无法知道后面3个分组的下落，而只好把第3,4,5分组重新再传一次。即Go-back-N(回退N)。表示需要再退回来重传已发送的N个分组。</p>
+<h2 id="TCP报文段的首部格式"><a href="#TCP报文段的首部格式" class="headerlink" title="TCP报文段的首部格式"></a>TCP报文段的首部格式</h2><p>todo</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/08/31/01-%E4%BB%8E0%E5%88%B01%E6%90%AD%E5%BB%BAKubernetes%E9%9B%86%E7%BE%A4/" rel="prev" title="01 从0到1搭建Kubernetes集群">
+      <i class="fa fa-chevron-left"></i> 01 从0到1搭建Kubernetes集群
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">TCP的特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">可靠传输原理及实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">可靠传输原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.1.</span> <span class="nav-text">停止等待协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E5%B7%AE%E9%94%99%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">无差错的情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E5%B7%AE%E9%94%99"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">出现差错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4%E4%B8%A2%E5%A4%B1%E5%92%8C%E7%A1%AE%E8%AE%A4%E8%BF%9F%E5%88%B0"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">确认丢失和确认迟到</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%ADARQ%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.2.</span> <span class="nav-text">连续ARQ协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E6%8A%A5%E6%96%87%E6%AE%B5%E7%9A%84%E9%A6%96%E9%83%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">TCP报文段的首部格式</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">tangruikun</p>
+  <div class="site-description" itemprop="description">学习记录，生活感悟</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tangruikun</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">13k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">23 分钟</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
