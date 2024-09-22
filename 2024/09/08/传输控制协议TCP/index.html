@@ -20,19 +20,30 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即应用程序在">
+  <meta name="description" content="最近在看计算机网络（第6版）相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即">
 <meta property="og:type" content="article">
 <meta property="og:title" content="传输控制协议TCP">
 <meta property="og:url" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/index.html">
 <meta property="og:site_name" content="tangruikun">
-<meta property="og:description" content="最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即应用程序在">
+<meta property="og:description" content="最近在看计算机网络（第6版）相关的基础知识，记录一下，做个TCP协议相关的笔记。 传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录： 1、TCP的特点 2、在不可靠的网络上实现可靠传输的工作原理和实现 3、TCP的滑动窗口、流量控制、拥塞控制 4、TCP的连接管理 TCP的特点1、TCP是面向连接的运输层协议。即">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE1.png">
 <meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE2.png">
 <meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%B5%81%E6%B0%B4%E7%BA%BF%E4%BC%A0%E8%BE%93.png">
 <meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E8%BF%9E%E7%BB%ADARQ%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E9%A6%96%E9%83%A8.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%8F%91%E9%80%81%E7%AA%97%E5%8F%A3.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BE%80%E8%BF%94%E6%97%B6%E9%97%B4%E7%A1%AE%E8%AE%A4.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E8%BF%9B%E8%A1%8C%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%85%A2%E5%BC%80%E5%A7%8B.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%85%A2%E5%BC%80%E5%A7%8B%E5%92%8C%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BF%AB%E9%87%8D%E4%BC%A0.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BF%AB%E9%87%8D%E4%BC%A0%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%BB%BA%E7%AB%8BTCP%E8%BF%9E%E6%8E%A5.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E8%BF%9E%E6%8E%A5%E9%87%8A%E6%94%BE%E8%BF%87%E7%A8%8B.png">
+<meta property="og:image" content="http://example.com/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA.png">
 <meta property="article:published_time" content="2024-09-08T02:40:26.000Z">
-<meta property="article:modified_time" content="2024-09-08T13:45:45.306Z">
+<meta property="article:modified_time" content="2024-09-22T14:34:08.344Z">
 <meta property="article:author" content="tangruikun">
 <meta property="article:tag" content="网络">
 <meta name="twitter:card" content="summary">
@@ -211,10 +222,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2024-09-08 10:40:26 / 修改时间：21:45:45" itemprop="dateCreated datePublished" datetime="2024-09-08T10:40:26+08:00">2024-09-08</time>
+              <time title="创建时间：2024-09-08 10:40:26" itemprop="dateCreated datePublished" datetime="2024-09-08T10:40:26+08:00">2024-09-08</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-09-22 22:34:08" itemprop="dateModified" datetime="2024-09-22T22:34:08+08:00">2024-09-22</time>
+              </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -229,14 +246,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.4k</span>
+              <span>14k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
+              <span>25 分钟</span>
             </span>
 
         </div>
@@ -248,7 +265,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>最近在看计算机网络相关的基础知识，记录一下，做个TCP协议相关的笔记。</p>
+        <p>最近在看<a target="_blank" rel="noopener" href="https://book.douban.com/subject/24740558/">计算机网络（第6版）</a>相关的基础知识，记录一下，做个TCP协议相关的笔记。</p>
 <p>传输控制协议TCP(Transmission Control Protocol)是TCP&#x2F;IP体系中非常复杂的协议，笔记目录：</p>
 <p>1、TCP的特点</p>
 <p>2、在不可靠的网络上实现可靠传输的工作原理和实现</p>
@@ -291,7 +308,158 @@
 <p>接收方一般采用累计确认的方式。即接收方不必对每个分组逐个发送确认，而是在收到几个分组后，对<strong>按序到达的最后一个分组发送确认</strong>，表示到这个分组为止的所有分组都已正确收到了。</p>
 <p>累计确认有优点也有缺点。优点：容易实现，即使确认丢失也不必重传（前面说过接收方会对按序到达的最后一个分组发送确认，如果第5个分组确认丢失了，但是后面发送方收到了第8个分组的确认，说明前8个分组都收到了，不用再重传第5个分组了）。缺点是不能向发送方反映出接收放已经正确收到的所有分组的信息。</p>
 <p>例如，发送方发送了前5个分组，而中间的第3个分组丢失了。也就是接收方收到了第1，第2，第4，第5个分组，这是接收方只能对第1和第2个分组发出确认。发送方无法知道后面3个分组的下落，而只好把第3,4,5分组重新再传一次。即Go-back-N(回退N)。表示需要再退回来重传已发送的N个分组。</p>
-<h2 id="TCP报文段的首部格式"><a href="#TCP报文段的首部格式" class="headerlink" title="TCP报文段的首部格式"></a>TCP报文段的首部格式</h2><p>todo</p>
+<h2 id="TCP报文段的首部格式"><a href="#TCP报文段的首部格式" class="headerlink" title="TCP报文段的首部格式"></a>TCP报文段的首部格式</h2><p>TCP首部的前20字节是固定的，后面有4n字节是根据需要而增加的选项（n是整数）。因此TCP首部的最小长度是20字节。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E9%A6%96%E9%83%A8.png" class="" title="TCP首部">
+
+<p>TCP首部固定部分各字段的意义：</p>
+<ol>
+<li><strong>源端口和目的端口</strong>各占2个字节，端口号最大为65535，0到1023为熟知端口号或系统端口号，1024到49151为登记端口号，49152~65535为短暂端口号（仅在客户进程运行时才动态选择）。</li>
+<li><strong>序号</strong>占4个字节。序号范围是[0,2^32-1]。序号在增加到2^32-1之后，又回到0，也就是序号使用mod 2^32运算。TCP是面向字节流的，在一个TCP传送的字节流中，每一个字节都按顺序编号。首部中的序号字段值表示本报文段所发送的第一个字节的序号。如一报文段序号字段值是301，携带的数据共有100字节，表明本报文段第一个字节的序号为301，最后一个报文段的序号是400。如果还有下一个报文段，则下一个报文段的序号从401开始。这个字段也叫报文段序号。</li>
+<li><strong>确认号</strong>占4个字节。期望收到对方下一个报文段的第一个数据字节的序号。假如B已经正确收到A发送过来的一个报文段，序号是300，数据为100字节，那么确认号就应该是401。</li>
+<li><strong>数据偏移</strong>占4位。指出TCP报文段数据起始处距离TCP报文段起始处有多远，即TCP报文段的首部有多长。数据偏移的单位是32位字(4字节)，因为4位二进制最大的十进制为15，所以数据偏移最大的为60字节，首部固定最小20字节，选项长度最长不超过40字节。</li>
+<li>保留占6位。保留为今后使用，但目前应置为0。</li>
+<li><strong>紧急URG</strong>(URGent)。当URG&#x3D;1时表明紧急指针字段有效。当URG置1时，发送应用进程就告诉发送方的TCP有紧急数据要传送。于是发送方TCP就把紧急数据插入到本报文段数据的最前面，而在紧急数据后面的数据仍是普通数据。这时要与首部中紧急指针(Urgent Pointer)字段配合使用。</li>
+<li><strong>确认ACK</strong>(ACKnowlegment)。仅当ACK&#x3D;1时，确认号字段才有效。TCP规定，在连接建立后所有传送的报文段都必须把ACK置为1。</li>
+<li><strong>推送PSH</strong>(PuSH)。当两个应用进程进行交互式通信时，有时希望键入一个命令后马上得到对方的响应。这是发送方TCP将PSH置为1发送，接收方收到后就尽快交付应用进程，而不等到接收缓存都满了之后才交付应用进程。推送操作很少使用。</li>
+<li><strong>复位RST</strong>(ReSeT)。当RST&#x3D;1时，表明TCP连接出现严重的差错（主机崩溃或其他原因），必须释放连接，然后重新建立连接。RST有时也用来拒绝非法报文段或拒绝打开一个连接。RST也可称为重建位或重置位。</li>
+<li><strong>同步SYN</strong>(SYNchronization)用于在连接时用来同步序号。当SYN&#x3D;1而ACK&#x3D;0时，表明这是一个连接请求报文段。如果对方同意建立连接，则应响应SYN&#x3D;1和ACK&#x3D;1。</li>
+<li><strong>终止FIN</strong>(FINis)用来释放一个连接。FIN&#x3D;1表明此报文段的发送方已发送完毕，请求释放连接。</li>
+<li><strong>窗口</strong>占2字节。窗口指的是接收方的接收窗口。因为接收方的数据缓存空间是有限的，因此会有接收窗口限制。窗口值作为接收方让发送方设置其发送窗口的依据。</li>
+<li><strong>校验和</strong>占2字节。校验和字段校验的范围包括首部和数据两部分。</li>
+<li><strong>紧急指针</strong>占2字节。紧急指针仅在URG &#x3D; 1时才有意义，它指出本报文段中的紧急数据的字节数（紧急数据结束后就是普通数据）。因此，紧急指针指出了紧急数据的末尾在报文段中的位置。当所有紧急数据都处理完时，TCP就告诉应用程序恢复到正常操作。值得注意的是，即使窗口为零时也可发送紧急数据。</li>
+<li><strong>选项</strong>长度可变。最长可达40字节。当没有使用“选项”时，TCP的首部长度是20字节。包含窗口扩大选项、时间戳选项和选择确认（SACK）选项。</li>
+<li>填充字段。确保TCP首部为4字节的整数倍。</li>
+</ol>
+<h2 id="可靠传输的实现"><a href="#可靠传输的实现" class="headerlink" title="可靠传输的实现"></a>可靠传输的实现</h2><h3 id="以字节为单位的滑动窗口"><a href="#以字节为单位的滑动窗口" class="headerlink" title="以字节为单位的滑动窗口"></a>以字节为单位的滑动窗口</h3><p>TCP的滑动窗口是以字节为单位的。下图中根据B给的窗口值，A构造自己的发送窗口。有发送窗口就有接收窗口，这里先讨论发送窗口。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%8F%91%E9%80%81%E7%AA%97%E5%8F%A3.png" class="" title="发送窗口">
+
+<p><strong>发送窗口</strong>表示：在没有收到B的确认的情况下，A可以连续把窗口内的数据都发送出去。凡时发送出去的数据，在没有收到确认之前都必须保留，以便超时重传。</p>
+<p>上图中，发送窗口内的序号是允许发送的序号，发送窗口越大，发送方就可以在得到确认之前发送越多数据，因而提高传输效率。前面说了，发送窗口是根据接收方的窗口值构造，因此发送窗口不能太大，需要考虑接收方是否来得及处理收到的数据。</p>
+<p>后沿后面的数据表示已收到确认，不需要重新发送，保留的副本也可以清理了。</p>
+<p>前沿前面的数据不能发送，因为接收方B还没有缓存可以接收这部分数据。</p>
+<p>可以看到发送窗口是由前沿和后沿共同决定。</p>
+<p>发送窗口的后沿的状态有两种：不动（没有收到新的确认）和前移（收到了新的确认）。<strong>不动</strong>：更加详细有两种情况，一是没有收到新的确认，或者收到的确认不是按序收到数据中最高序号的确认（比如收到的是32而不是31的确认，不会移动），且对方通知的窗口大小也没变；二是收到新的确认，但是对方通知的窗口变小了，前沿刚好不变。<strong>前移</strong>：一般后沿是不断前移的，不允许后移，因为不能撤销掉已收到的确认。</p>
+<p>发送窗口的前沿也有可能向后收缩。这发生在对方通知窗口缩小了。但是<strong>TCP的标准强烈不赞成这样做</strong>。因为很可能在收到这个窗口值前，A已经发送了许多数据，现在又不让发送了，可能会导致一些错误产生。</p>
+<h3 id="超时重传的时间选择"><a href="#超时重传的时间选择" class="headerlink" title="超时重传的时间选择"></a>超时重传的时间选择</h3><p>前面讲过，TCP的发送方在一定时间内没有收到确认，就会重传已发送的报文段。</p>
+<p>超时重传的时间应该设置成多大？设置大了，网络资源空闲时间过长而浪费，设置小了，可能导致不必要的重传，所以需要探讨一个合适的超时重传时间。</p>
+<p>TCP采用了一种自适应算法，它记录一个报文段发出的时间，以及收到相应报文段的确认的时间。这个两个时间之差就是<strong>报文段往返时间RTT</strong>。TCP保留了RTT的加权平均往返时间RRT<sub>S</sub>（又称平滑往返时间，S表示Smoothed）。当第一次测量到RTT时，RTT<sub>S</sub>等于RTT测量样本值，但是后面每测量到一个RTT样本，需要按照下面的公式重新计算一次RTT<sub>S</sub>：<br>$$<br>新的RTT_{S} &#x3D; (1-α)×(旧的RTT_{S})+α×(新的RTT样本)<br>$$<br>上式中，0≤α﹤1。若α接近于零，则新的RTT<sub>S</sub>相比旧的RTT<sub>S</sub>变化不大。若α接近于零，则在新的RTT<sub>S</sub>受RTT样本影响较大。</p>
+<p>RFC 2988推荐的α值为1&#x2F;8，即0.125。用这种方法得出的加权平均往返时间RTTS就比测量出的RTT值更加平滑。</p>
+<p><strong>超时重传时间RTO</strong>（RetransmissionTime-Out）应大于RTT<sub>S</sub>。RFC 2988建议使用下式计算RTO：<br>$$<br>RTO&#x3D;RTT_{S}+4×RTT_{D}<br>$$<br>RTT<sub>D</sub>是RTT的偏差的加权平均值，它与RTT<sub>S</sub>和新的RTT样本有关。RFC 2988建议这样计算RTT<sub>D</sub>。当第一次测量时，RTT<sub>D</sub>值取为测量到的RTT样本值的一半。在以后的测量中，则使用下式计算加权平均的RTT<sub>D</sub>：<br>$$<br>新的RTT_{D}&#x3D;(1-β)×(旧的RTT_{D})+β×|RTT_{S}-新的RTT样本|<br>$$<br>这里 β 是个小于1的系数，它的推荐值是1&#x2F;4，即0.25。</p>
+<p>根据上面的三个公式就可以算出超时重传时间。我们发现，超时重传时间是很依赖RTT的，如果RTT计算不准确，则超时重传时间就会设置得不合适。</p>
+<p>实际上，RTT的测量是比较复杂的。如下图，发送了一个报文段，设定的超时重传时间到了，还没有收到确认，于是重新发送一个报文段。经过一段时间后，收到确认。现在的问题是，这个确认是第一个报文段的确认，还是第二个重新发送报文段的确认？</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BE%80%E8%BF%94%E6%97%B6%E9%97%B4%E7%A1%AE%E8%AE%A4.png" class="" title="往返时间确认">
+
+<p>因此，<strong>Karn</strong>提出了一个算法：<strong>在计算平均RTT<sub>S</sub>时，只要报文段重传了，就不采用其往返的时间样本。这样得到的加权平均RTT<sub>S</sub>和RTO就较准确</strong>。</p>
+<p>但是，这又引起新的问题：假如报文段的时延突然增大了许多，在原来得出的重传时间内，不会收到确认，于是需要重传报文段。根据上面Karn算法，发生重传不会采用其RTT样本，这样RTO就不能得到更新。</p>
+<p>因此要对Karn算法进行修正。方法是：报文段每重传一次，就把超时重传时间RTO增大一些。典型的做法是取新的重传时间为2倍的旧的重传时间。当不再发生报文段的重传时，才根据上面给出的公式计算超时重传时间。实践证明，这种策略较为合理。</p>
+<h3 id="选择确认SACK"><a href="#选择确认SACK" class="headerlink" title="选择确认SACK"></a>选择确认SACK</h3><p>有一个场景：若是收到的报文段无差错，只是未按序到达，中间还缺少一些序号的数据，那么能都只重传中间缺少的数据。比如接受方缓存收到了1<del>3号字节块和7</del>10号字节块，中间的4~6号字节块丢失了，能否只传丢失的字节块？</p>
+<p>答案是可以的，使用选择确认。</p>
+<p>但是因为SACK文档并没有指明发送方应当怎样响应SACK，因此现实中，大多数实现还是重传未被确认的数据块。</p>
+<h1 id="TCP的流量控制"><a href="#TCP的流量控制" class="headerlink" title="TCP的流量控制"></a>TCP的流量控制</h1><h2 id="利用滑动窗口实现流量控制"><a href="#利用滑动窗口实现流量控制" class="headerlink" title="利用滑动窗口实现流量控制"></a>利用滑动窗口实现流量控制</h2><p>一般来说，我们总是希望数据传输得快一些。但是如果发送方发送过快，可能会导致接收方来不及接收，造成数据丢失。所谓<strong>流量控制（flow control）就是让发送方的发送速率不要太快，要让接收方来得及接收</strong>。</p>
+<p>滑动窗口机制可以很方便地在TCP连接上实现对发送方的流量控制。</p>
+<p>如下图中，A向B发送数据。在建立连接时，B告诉了A（下图中没有表现出来）：“我的接收窗口是rwnd&#x3D;400“（rwnd表示receiver window）。因此，<strong>发送方的发送窗口不能接收方给出的接收窗口的数值</strong>。需要注意，<strong>TCP的窗口单位是字节，不是报文段</strong>。</p>
+<p>下图中， 接收方的主机B进行了三次流量控制，第一次把窗口减小到rwnd&#x3D;300，第二次rwnd&#x3D;100，第三次rwnd&#x3D;0，即不允许发送方再发送数据。这种发送方暂停发送数据的状态一直到接收方主机B发送一个新的窗口值为止。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E8%BF%9B%E8%A1%8C%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6.png" class="" title="滑动窗口进行流量控制">
+
+<p>现在有这样一种情况：B向A发送零窗口报文段不久，B的接收缓存又有了一些空间，这时B向A发送了rwnd&#x3D;400的报文段。然而这个报文段在传送过程中丢失了。这时候A因为没有收到新的窗口而一直处于阻塞状态，而B一直等待A发送数据，从而导致死锁。</p>
+<p>为了解决这个问题，TCP为每个连接设有一个<strong>持续计时器</strong>（persistence timer）。只有TCP连接的一方收到零窗口，就启动持续计时器，若计时器到期，就发送一个零窗口探测报文段（仅携带1字节的数据），对方就在这个确认这个探测报文段时给出现在的窗口值（TCP规定，即使设置了零窗口，也必须接收以下几种报文段：零窗口探测报文段、确认报文段、携带紧急数据的报文段）。如果窗口仍然是零，那么重新设置持续计时器，如果不是零，死锁僵局被打破，可以正常发送数据了。</p>
+<h2 id="必须考虑传输效率"><a href="#必须考虑传输效率" class="headerlink" title="必须考虑传输效率"></a>必须考虑传输效率</h2><p>应用进程把数据传送到TCP的发送缓存后， 剩下的发送任务就由TCP来控制了。</p>
+<p>可以有不同的机制来控制TCP报文段发送的时机：</p>
+<p>第一种，TCP维持一个变量，它等于最大报文段长度MSS，只要缓存中的数据MSS字节时，就组装成一个TCP报文段发送出去。</p>
+<p>第二种，由应用进程指明要求发送报文段，即TCP支持推送（push）操作。</p>
+<p>第三种，发送方的计时器期限到了，就把当前已有的缓存发送出去（不能超过MSS）。</p>
+<p>在TCP的实现中广泛使用<strong>Nagle算法</strong>。算法如下：</p>
+<p>若发送应用进程把要发送的的数据逐个字节地送到TCP缓存，则发送方就把第一个数据字节先发送出去，把后面到达的数据字节缓存起来；</p>
+<p>当发送方收到对第一个数据字符的确认后，再把发送缓存中的所有数据组成一个报文段发送出去，同时继续对随后到达的数据进行缓存；</p>
+<p>只有收到前一个报文段的确认才继续发送下一个报文段；</p>
+<p>当到达的数据已达到发送窗口大小的一半或达到报文段的最大长度时，就立即发送一个报文段。这样可以有效提高网络吞吐量。</p>
+<p>以上就是Nagel算法。</p>
+<p>还有一个问题是<strong>糊涂窗口综合症</strong>（silly window syndrome），有时也会使TCP性能变坏。有这样一种情况，TCP的接收方的缓存已满，而交互式的应用进程一次只从缓存中读取一个字节（这样接收缓存只腾出一个字节的空间），然后向发送方发出确认，并把窗口设置成1个字节。接着发送方又发来1字节数据。接收方又发出确认，窗口仍为1。这样，网络的使用率就会很低。</p>
+<p>要解决这个问题，可以让 接收方等待一段时间，使得接收方缓存已有足够空间容纳一个最长的报文段，或者等到接收方缓存已有一半空闲的空间。只要出现这两种情况之一，接收方就发出确认报文，并向对方通知当前窗口大小。此外，发送方也不要发送太小的报文段，而是把数据累计成足够大的报文段，或达到接收方缓存的空间的一半大小。</p>
+<p>上述方法可配合使用。使得发送方不发送很小的报文段，接收方也不要刚有一点缓存空间就急忙把这个很小的窗口通知对方。</p>
+<h1 id="TCP的拥塞控制"><a href="#TCP的拥塞控制" class="headerlink" title="TCP的拥塞控制"></a>TCP的拥塞控制</h1><h2 id="拥塞控制的一般原理"><a href="#拥塞控制的一般原理" class="headerlink" title="拥塞控制的一般原理"></a>拥塞控制的一般原理</h2><p>在计算机网络中，链路容量（带宽）、交换结点中的缓存和处理机等，都是网络的资源。在某段时间内，若对网络中某一资源的需求超过了该资源所能提供的可用部分，网络的性能可能就要变坏，这种情况就叫<strong>拥塞</strong>。</p>
+<p>为了解决拥塞问题，是不是只要任意增加一些资源就可以了？比如把结点的缓存增大，把链路更换为更高速率的链路，把结点的处理机运算速度提高等。因为网络拥塞是一个非常复杂的问题，简单地按照上面的做法，许多情况下问题不但不能解决，可能网络性能可能更坏。</p>
+<p>网络拥塞往往是由许多因素引起的。当某个结点的缓存容量太小时，到达该结点的分组因为无法缓存而丢弃。现在假如该结点扩展了缓存容量，可以存放更多的分组。于是凡时到达该结点的分组都可以在该结点排队，不受任何限制。由于链路的速率并没有提高，分组在该结点排队时间远远超过了超时重传时间，于是上层程序重传分组，造成了更大的拥塞，网络性能变得更差了。</p>
+<p>那如果是结点的处理机速度太慢导致拥塞呢？简单地将处理机速度提升，可能会缓解丢包情况，但是瓶颈往往又转移到另外的地方。</p>
+<p>因此，<strong>网络拥塞的问题实质是各部分不匹配，只有各部分都平衡了，问题才会得到解决</strong>。</p>
+<p>拥塞控制和流量控制的区别：</p>
+<p>拥塞控制是防止过多数据注入到网络中，是全局性的过程。</p>
+<p>流量控制是点对点通信的控制，是个端到端的问题。</p>
+<p>比如，有一条光纤网络的链路传输速率为1000Gb&#x2F;s。有一个巨型计算机以1Gb&#x2F;s向一个PC机发送数据，此时不会产生拥塞因为网络带宽是足够的，但是流量控制是需要的，因为PC机可能来不及接收。</p>
+<p>但是如果光纤网络的链路传输速率为1Mb&#x2F;s，有1000台巨型计算机连接在这个网络上，其中500台以100kb&#x2F;s向另外500台发送数据，这时候，巨型计算机不用考虑来得及接收，而是要考虑整个网络的输入是否超过了网络的负载。</p>
+<p>从原理来讲无非就是使对资源的请求小于可用资源。或增加网络资源，或减少用户需求。如前面说的，当采用某种措施时，需要整体考虑。</p>
+<p>从大的方面看，有两种方法看拥塞问题。</p>
+<p><strong>开环控制</strong>：在设计网络时事先将有关发生拥塞的因素考虑周到，力求网络在工作时不产生拥塞。但一旦整个系统运行起来就不允许修改了。</p>
+<p><strong>闭环控制</strong>：闭环控制是基于反馈环路的概念。有如下几个措施：</p>
+<p>（1）监测网络系统以便检测拥塞发生在何时、何处</p>
+<p>（2）把拥塞发生的信息发送到可采取行动的地方</p>
+<p>（3）调整网络系统的云心以解决出现的问题</p>
+<h2 id="几种拥塞控制的方法"><a href="#几种拥塞控制的方法" class="headerlink" title="几种拥塞控制的方法"></a>几种拥塞控制的方法</h2><p>1999年公布的因特网建议标准RFC 2581定义了进行拥塞控制的四种算法。<strong>慢开始</strong>（slow-start）、<strong>拥塞避免</strong>（congestion avoidance）、<strong>快重传</strong>（fast retransmit）和<strong>快恢复</strong>（fast recovery）。以后RFC 2582和RFC 3390又对这些算法进行了一些改进。</p>
+<h3 id="慢开始和拥塞避免"><a href="#慢开始和拥塞避免" class="headerlink" title="慢开始和拥塞避免"></a>慢开始和拥塞避免</h3><p>发送方维持一个叫做<strong>拥塞窗口cwnd</strong>（congestion window）的变量。发送方控制拥塞窗口的原则是：只要网络没有发送拥塞，发送窗口就大些，以便把更多分组发送出去。网络发生拥塞时，窗口就减少一些，减少注入到网络的分组。</p>
+<p>发送方如何知道网络发生了拥塞呢？我们知道，当网络发生拥塞时，路由器就要丢弃分组，因此只要发送方没有按时收到应当到达的确认报文，就可以猜想网络可能发生了拥塞。</p>
+<p>拥塞窗口大小如何变化？先从慢开始算法开始讲起。</p>
+<p><strong>慢开始算法思路是这样的</strong>。当主机开始发送数据时，如果立即把大量数据字节注入到网络，那么就有可能引起网络拥塞，因为现在还不知道网络的负荷情况。经验表明，较好的方法是先探测一下，即由小到大逐渐增大发送窗口，也就是说，<strong>由小到大逐渐增大拥塞窗口数值</strong>。通常在刚刚开始发送报文段时，先把拥塞窗口cwnd设置为一个最大报文段MSS的数值。后面每收到一个对新的报文段的确认后，把拥塞窗口增加至多一个MSS的数值。</p>
+<p>如下图，发送发方每收到一个确认，拥塞窗口就加1。<strong>每经过一个传输轮次（transmission round），拥塞窗口cwnd就加倍</strong>。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%85%A2%E5%BC%80%E5%A7%8B.png" class="" title="慢开始">
+
+<p>为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个<strong>慢开始门限</strong>ssthresh状态变量。慢开始门限ssthresh用法如下：</p>
+<p>当cwnd&lt;ssthresh时，使用上述慢开始算法。</p>
+<p>当cwnd&gt;ssthresh时,停止使用慢开始算法而改用拥塞避免算法。</p>
+<p>当cwnd&#x3D;ssthresh时，既可以使用慢开始算法，也可以使用拥塞避免算法。</p>
+<p><strong>拥塞避免算法的思路</strong>是让拥塞窗口cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1，而不是加倍。这样拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢很多。</p>
+<p>无论在慢开始阶段还是在拥塞避免阶段，只要发送方判断网络出现拥塞（判断根据就是没有按时收到确认），就要把慢开始门限ssthresh设置为出现拥塞时发送窗口值的一半（但不能小于2）。然后把拥塞窗口cwnd重新设置为1，执行慢开始算法。这样做的目的就是要迅速减少主机发送到网络中的分组数，使得发生拥塞的路由器有足够的时间把队列中积压的分组处理完毕。</p>
+<p>下图中，举例说明慢开始和拥塞避免。可以看到，<strong>乘法减小</strong>（Multiplicative Decrease）和<strong>加法增大</strong>（Additive Increase）的提法，这两种算法合在一起常称为<strong>AIMD算法</strong>（加法增大乘法减小）。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E6%85%A2%E5%BC%80%E5%A7%8B%E5%92%8C%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.png" class="" title="慢开始和拥塞避免">
+
+<h3 id="快重传和快恢复"><a href="#快重传和快恢复" class="headerlink" title="快重传和快恢复"></a>快重传和快恢复</h3><p><strong>快重传算法</strong>首先要求接收方每收到一个<strong>失序的报文段</strong>后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时才捎带确认。</p>
+<p>如下图，接收方收到了M1和M2，都分别发出了确认。现在接收方收到了M4，但是没有收到M3，显然不能对M4进行确认。按照可靠性传输原理，接收方可以什么都不做，也可以在适当时机发送一次对M2的确认。但是按照快重传算法的规定，接收方应及时发出对M2的重复确认，这样做可以让发送方及时知道M3没有被确认。发送方接着发送M5和M6。接收方收到后，也还要再次对M2发出重复确认。快重传规定，发送方只要<strong>一连收到三次重复确认</strong>就应当立即重传对方尚未收到的报文段M3，而不必等到M3设置得重传计时器结束。快重传可以使整个网络的吞吐量提高约20%。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BF%AB%E9%87%8D%E4%BC%A0.png" class="" title="快重传">
+
+<p>和快重传配合使用的还有<strong>快恢复</strong>算法，其过程主要有一下两点：</p>
+<p>（1）当发送方连续收到三个重复确认时，就执行“乘法减小”算法，把慢开始门限ssthresh减半。这是为了预防网络发生拥塞。请注意，接下去不执行慢开始算法。</p>
+<p>（2）由于发送方现在任务网络很可能没有发生拥塞（如果发送严重拥塞，就不会一连有好几个报文段连续到达接受方，就不会导致接收方连续发送重复确认），因此与慢开始不同，现在不执行慢开始（即cwnd现在不设置为1），而是把cwnd设置为慢开始ssthresh门限减半后的数值，然后开始执行拥塞避免算法，使得拥塞窗口线性增大。</p>
+<p>下图给出了快重传和快恢复的示意图，并标明了“TCP Reno版本”，这是目前使用得很广泛的版本。图中还画出了已经废弃不用的虚线部分（TCP Tahoe版本）。请注意它们的区别就是：新的TCP Reno版本在快重传之后采用快恢复算法而不是采用慢开始算法。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E5%BF%AB%E9%87%8D%E4%BC%A0%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.png" class="" title="快重传拥塞避免">
+
+<p>在采用快恢复算法时，慢开始算法只是在TCP 连接建立时和网络出现超时时才使用。</p>
+<p>我们这节在讨论几种拥塞算法时，都假定了接收方总是有足够大的缓存空间，因而发送窗口的大小由拥塞窗口决定。实际上，接收方的缓存窗口总是有限的。因此需要拥塞窗口和接收窗口一起考虑，那么很显然，发送方的窗口的上限值应当取为接收方窗口rwnd和拥塞窗口cwnd这两个变量中较小的一个：</p>
+<p>发送窗口的上限值&#x3D;Min [rwnd, cwnd]</p>
+<p>当rwnd &lt; cwnd时，是接收方的接收能力限制发送方窗口的最大值。反之，当cwnd &lt; rwnd时，则是网络的拥塞限制发送方窗口的最大值。也就是说， rwnd和cwnd中较小的一个控制发送方发送数据的速率。</p>
+<h1 id="TCP运输连接管理"><a href="#TCP运输连接管理" class="headerlink" title="TCP运输连接管理"></a>TCP运输连接管理</h1><p>TCP是面向连接的协议。运输连接有三个阶段：<strong>连接建立、数据传送和连接释放</strong>。</p>
+<p>在TCP连接建立过程中要解决以下三个问题：</p>
+<p>（1）要使每一方能够确知对方的存在。</p>
+<p>（2）要允许双方协商一些参数（如最大窗口值、是否使用窗口扩大选项、时间戳选项、服务质量等）。</p>
+<p>（3）能够对运输实体资源（如缓存大小、连接表中的项目等）进行分配。</p>
+<p>TCP连接的建立采用客户服务器方式。主动发起建立请求的应用进程叫做客户（client）。被动等待连接建立的应用进程叫做服务器（server）。</p>
+<h2 id="TCP的连接建立"><a href="#TCP的连接建立" class="headerlink" title="TCP的连接建立"></a>TCP的连接建立</h2><p>下图是TCP的建立连接过程。假定主机A是TCP客户程序，主机B运行TCP服务器程序。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%BB%BA%E7%AB%8BTCP%E8%BF%9E%E6%8E%A5.png" class="" title="三次握手建立TCP连接">
+
+<p>B的TCP服务进程先创建<strong>传输控制块TCB</strong>(Transmission Control Block)，准备接受客户进程的连接请求。然后服务器进程进入LISTEN(收听)状态。</p>
+<p>A的TCP客户进程也是首先创建TCB，然后向B发出连接请求报文段。这时首部中的同步为SYN&#x3D;1，同时选择一个初始序号seq&#x3D;x。TCP规定，SYN报文段（即SYN&#x3D;1的报文段）不能携带数据，但是<strong>需要消耗一个序号</strong>。这时，TCP客户程序进入SYN-SENT（同步以发送）状态。</p>
+<p>B收到连接请求报文段后，如同意建立连接，则向A发送确认。在确认报文段中，把SYN和ACK位都置为1，确认号ack&#x3D;x+1，同时自己也选择一个序号y。需要注意，这个报文段不能携带数据，但是同样要消耗掉一个序号。这时，TCP服务器进程进入SYN-RCVD（同步收到）状态。</p>
+<p>A收到B的确认后，还要向B给出确认。确认报文段的ACK置为1，确认号ack&#x3D;y+1，而自己的序号seq&#x3D;x+1。TCP规定，ACK报文段可以携带数据。但<strong>如果不携带数据则不消耗序号</strong>，在这种情况下，下一个数据报文段的序号仍是seq&#x3D;x+1。这时，TCP连接已经建立，A进入ESTABLISHED（已建立连接）状态。</p>
+<p>B收到A的确认后，也进入ESTABLISHED（已建立连接）状态。</p>
+<p>上面给出的连接建立过程叫做<strong>三次握手</strong>（three-way handshake）。</p>
+<p><strong>为什么A还要发送一次确认呢？这主要是防止已失效的连接请求报文段突然又传送到B，因而产生错误。</strong>这个失效的报文段请求可能是这样产生的，由于该报文段在网络结点长时间滞留了，以致到连接释放后，才在某个时间点到达B。本来这时一个失效的报文段，B误认为A又发起了新的请求，假如不是三次握手，B就接受连接了，这样B的资源就白白浪费了。</p>
+<h2 id="TCP的连接释放"><a href="#TCP的连接释放" class="headerlink" title="TCP的连接释放"></a>TCP的连接释放</h2><p>数据传输结束后，通信的双方都可释放连接。如下图，现在A和B都处于ESTABLISHED状态。</p>
+<p>A应用进程先向其TCP发出连接释放报文段，并停止发送数据，主动关闭TCP连接。A把报文段的终止控制位置为1，FIN&#x3D;1，其序号seq&#x3D;u，它等于前面传送过的数据的最后一个字节序号加1。这时A进入FIN-WAIT-1（终止等待1）状态，等待B确认。TCP规定，FIN报文段即使不携带数据也要消耗一个序号。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E8%BF%9E%E6%8E%A5%E9%87%8A%E6%94%BE%E8%BF%87%E7%A8%8B.png" class="" title="TCP连接释放过程">
+
+<p>B收到连接释放报文段后，发出确认，确认号是ack&#x3D;u+1，而这个报文段自己的序号是seq&#x3D;v，等于B前面已经传送过的数据的最后一个字节的序号加1。然后B进入CLOSE-WAIT（关闭等待）状态。TCP服务器进程这时应通知高层应用进程，因而从A到B这个方向的连接就释放了，这时的TCP连接处于<strong>半关闭</strong>（half-close）状态，即A没有数据发送给B了，但若B仍要发送数据给A，A仍要接收。B到A的方向并没有关闭，这个状态可能会持续一段时间。</p>
+<p>A收到来自B的确认后，就进入FIN-WAIT-2（终止等待2）状态，等待B发出的连接释放报文段。</p>
+<p>若B已经没有要向A发送的数据，其应用进程就通知TCP释放连接。这时B发出的报文段必须FIN&#x3D;1。现假定B的序号为w（半关闭状态B可能又发送了一些数据）。B还必须重复上次发送过的确认号ack&#x3D;u+1。这时B就进入LAST-ACK（最后确认）状态，等待A确认。</p>
+<p>A收到B的连接释放报文段后，必须对此发出确认。在确认报文段的ACK&#x3D;1，确认号ack&#x3D;w+1，序号是seq&#x3D;u+1（根据TCP标准，前面发送过的FIN报文段要消耗一个序号）。然后进入到TIME-WAIY（时间等待）状态。请注意，现在TCP连接还没有释放掉。必须经过<strong>时间等待计时器</strong>（TIME-WAIT timer）设置的时间2MSL后，A才进入到CLOSED状态。<strong>时间MSL叫做最长报文段寿命</strong>（Maximum Segment Lifetime），RFC793建议设为2分钟（可根据实际情况设置小一点）。因此，A进入TIME-WAIT状态后，要经过4分钟才能进入CLOSED状态，才能开始建立下一个新的连接。当A撤销响应的TCB后，就结束了这次的TCP连接。</p>
+<p>为什么A在TIME-WAIT状态必须等待2MSL的时间呢？有两个理由：</p>
+<p>（1）为了保证A发送的最后一个ACK报文段能够到达B。这个ACK报文段有可能丢失，因而使处在LAST-ACK状态的B收不到对已发送的FIN + ACK报文段的确认。B会超时重传这个FIN + ACK报文段，而A就能在2MSL时间内收到这个重传的FIN + ACK报文段。接着A重传一次确认，重新启动2MSL计时器。最后，A和B都正常进入到CLOSED状态。如果A在TIME-WAIT状态不等待一段时间，而是在发送完ACK报文段后立即释放连接，那么就无法收到B重传的FIN + ACK报文段，因而也不会再发送一次确认报文段。这样，B就无法按照正常步骤进入CLOSED状态。</p>
+<p>（2）防止前面提到的“已失效的连接请求报文段”出现在本连接中。B只要收到了A发出的确认，就进入CLOSED状态。同样，B在撤销相应的传输控制块TCB后，就结束了这次的TCP连接。我们注意到，B结束TCP连接的时间要比A早一些。上述的TCP连接释放过程是四次握手。</p>
+<p>B只要收到了A发出的确认，就进入CLOSED状态。同样，B在撤销相应的传输控制块TCB后，就结束了这次的TCP连接。我们注意到，B结束TCP连接的时间要比A早一些。</p>
+<p>上述的TCP连接释放过程是四次握手。</p>
+<h2 id="TCP的有限状态机"><a href="#TCP的有限状态机" class="headerlink" title="TCP的有限状态机"></a>TCP的有限状态机</h2><p>下图给出了TCP的有限状态机。图中每一个方框即TCP可能具有的状态。</p>
+<p>每个方框中的大写英文字符串是TCP标准所使用的TCP连接状态名。状态之间的箭头表示可能发生的状态变迁。</p>
+<p>箭头旁边的字，表明引起这种变迁的原因，或表明发生状态变迁后又出现什么动作。</p>
+<p>请注意图中有三种不同的箭头。粗实线箭头表示对客户进程的正常变迁。粗虚线箭头表示对服务器进程的正常变迁。另一种细线箭头表示异常变迁。</p>
+<img src="/2024/09/08/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AETCP/TCP%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA.png" class="" title="TCP有限状态机">
+
 
     </div>
 
@@ -372,7 +540,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">TCP的特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">可靠传输原理及实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">可靠传输原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.1.</span> <span class="nav-text">停止等待协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E5%B7%AE%E9%94%99%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">无差错的情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E5%B7%AE%E9%94%99"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">出现差错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4%E4%B8%A2%E5%A4%B1%E5%92%8C%E7%A1%AE%E8%AE%A4%E8%BF%9F%E5%88%B0"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">确认丢失和确认迟到</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%ADARQ%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.2.</span> <span class="nav-text">连续ARQ协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E6%8A%A5%E6%96%87%E6%AE%B5%E7%9A%84%E9%A6%96%E9%83%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">TCP报文段的首部格式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">1.</span> <span class="nav-text">TCP的特点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">可靠传输原理及实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">可靠传输原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.1.</span> <span class="nav-text">停止等待协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E5%B7%AE%E9%94%99%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">无差错的情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E5%B7%AE%E9%94%99"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">出现差错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4%E4%B8%A2%E5%A4%B1%E5%92%8C%E7%A1%AE%E8%AE%A4%E8%BF%9F%E5%88%B0"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">确认丢失和确认迟到</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%ADARQ%E5%8D%8F%E8%AE%AE"><span class="nav-number">2.1.2.</span> <span class="nav-text">连续ARQ协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E6%8A%A5%E6%96%87%E6%AE%B5%E7%9A%84%E9%A6%96%E9%83%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">TCP报文段的首部格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%9D%A0%E4%BC%A0%E8%BE%93%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.3.</span> <span class="nav-text">可靠传输的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5%E5%AD%97%E8%8A%82%E4%B8%BA%E5%8D%95%E4%BD%8D%E7%9A%84%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3"><span class="nav-number">2.3.1.</span> <span class="nav-text">以字节为单位的滑动窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0%E7%9A%84%E6%97%B6%E9%97%B4%E9%80%89%E6%8B%A9"><span class="nav-number">2.3.2.</span> <span class="nav-text">超时重传的时间选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E7%A1%AE%E8%AE%A4SACK"><span class="nav-number">2.3.3.</span> <span class="nav-text">选择确认SACK</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E7%9A%84%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-number">3.</span> <span class="nav-text">TCP的流量控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E5%AE%9E%E7%8E%B0%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-number">3.1.</span> <span class="nav-text">利用滑动窗口实现流量控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%85%E9%A1%BB%E8%80%83%E8%99%91%E4%BC%A0%E8%BE%93%E6%95%88%E7%8E%87"><span class="nav-number">3.2.</span> <span class="nav-text">必须考虑传输效率</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E7%9A%84%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">TCP的拥塞控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%E4%B8%80%E8%88%AC%E5%8E%9F%E7%90%86"><span class="nav-number">4.1.</span> <span class="nav-text">拥塞控制的一般原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%A0%E7%A7%8D%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">4.2.</span> <span class="nav-text">几种拥塞控制的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%85%A2%E5%BC%80%E5%A7%8B%E5%92%8C%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D"><span class="nav-number">4.2.1.</span> <span class="nav-text">慢开始和拥塞避免</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%AB%E9%87%8D%E4%BC%A0%E5%92%8C%E5%BF%AB%E6%81%A2%E5%A4%8D"><span class="nav-number">4.2.2.</span> <span class="nav-text">快重传和快恢复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E8%BF%90%E8%BE%93%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86"><span class="nav-number">5.</span> <span class="nav-text">TCP运输连接管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E7%9A%84%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B"><span class="nav-number">5.1.</span> <span class="nav-text">TCP的连接建立</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E7%9A%84%E8%BF%9E%E6%8E%A5%E9%87%8A%E6%94%BE"><span class="nav-number">5.2.</span> <span class="nav-text">TCP的连接释放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E7%9A%84%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="nav-number">5.3.</span> <span class="nav-text">TCP的有限状态机</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -430,13 +598,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">13k</span>
+    <span title="站点总字数">24k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">23 分钟</span>
+    <span title="站点阅读时长">43 分钟</span>
 </div>
   <div class="powered-by">
     <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动 -->
