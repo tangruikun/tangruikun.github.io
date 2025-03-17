@@ -42,6 +42,10 @@
     lang   : 'zh-CN'
   };
 </script>
+<!-- 引入 Coze SDK -->
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.5/libs/cn/index.js"></script>
+<!-- 引入自定义的 Coze 集成脚本 -->
+<script src="coze-integration.js"></script>
 
   <title>归档 | tangruikun</title>
   
@@ -337,7 +341,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2024</span>
+  <span itemprop="copyrightYear">2025</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -434,5 +438,7 @@
 
   
 
-</body>
+<!-- hexo injector body_end start -->
+<script src="/js/coze-integration.js"></script>
+<!-- hexo injector body_end end --></body>
 </html>
